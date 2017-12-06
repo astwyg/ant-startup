@@ -7,7 +7,7 @@ const MenuItemGroup = Menu.ItemGroup;
 
 class Headline extends React.Component {
   state = {
-    current: window.location.hash.replace("#",""),
+    current: "/"+window.location.hash.split("/")[1] || "/",
   };
   handleClick = (e) => {
     if(e.key !== window.location.hash.replace("#","")){

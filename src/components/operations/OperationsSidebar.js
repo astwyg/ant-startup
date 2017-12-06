@@ -1,27 +1,28 @@
 import { Menu, Icon } from 'antd';
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
+import { withRouter, Link  } from 'dva/router';
 
-import styles from './OperationsSidebar.css';
 
 class OperationsSidebar extends React.Component {
   handleClick = (e) => {
-    console.log('click ', e);
-  }
+    if(e.key !== window.location.hash.replace("#","")){
+      this.props.history.push(e.key);
+    }
+  };
   render() {
     return (
       <Menu
-        className={ styles.floatLeft }
         onClick={this.handleClick}
-        style={{ width: 256 }}
-        defaultSelectedKeys={['1']}
+        style={{ width: 256, float:"left" }}
+        defaultSelectedKeys={[window.location.hash.replace("#","")]}
         defaultOpenKeys={['sub1']}
         mode="inline"
       >
         <SubMenu key="sub1" title={<span><Icon type="mail" /><span>Navigation One</span></span>}>
           <MenuItemGroup key="g1" title="Item 1">
-            <Menu.Item key="1">Option 1</Menu.Item>
-            <Menu.Item key="2">Option 2</Menu.Item>
+            <Menu.Item key="/operations">Option 1</Menu.Item>
+            <Menu.Item key="/operations/shiftManagement">班次管理</Menu.Item>
           </MenuItemGroup>
           <MenuItemGroup key="g2" title="Item 2">
             <Menu.Item key="3">Option 3</Menu.Item>
@@ -47,4 +48,4 @@ class OperationsSidebar extends React.Component {
   }
 }
 
-export default OperationsSidebar;
+export default withRouter(OperationsSidebar);
