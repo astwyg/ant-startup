@@ -1,5 +1,5 @@
 import React from 'react';
-import { Router, Link  } from 'dva/router';
+import { Router, Link, withRouter  } from 'dva/router';
 import styles from './Headline.css';
 import { Menu, Icon } from 'antd';
 const SubMenu = Menu.SubMenu;
@@ -7,10 +7,12 @@ const MenuItemGroup = Menu.ItemGroup;
 
 class Headline extends React.Component {
   state = {
-    current: 'mail',
+    current: window.location.hash.replace("#",""),
   };
   handleClick = (e) => {
-    console.log('click ', e);
+    if(e.key !== window.location.hash.replace("#","")){
+      this.props.history.push(e.key)
+    }
     this.setState({
       current: e.key,
     });
@@ -25,18 +27,15 @@ class Headline extends React.Component {
         <Menu.Item key="dummy" disabled>
           <h2>西三物业管理系统</h2>
         </Menu.Item>
-        <Menu.Item key="mail">
-          <Link to="/">
+        <Menu.Item key="/">
             <Icon type="appstore" />首页
-          </Link>
         </Menu.Item>
-        <Menu.Item key="app">
+        <Menu.Item key="/devices">
           <Icon type="appstore" />设备管理
         </Menu.Item>
-        <Menu.Item key="alipay">
-          <Link to="/operations">
+        <Menu.Item key="/operations">
             <Icon type="appstore" />运维管理
-          </Link>
+
         </Menu.Item>
       </Menu>
     );
@@ -44,4 +43,4 @@ class Headline extends React.Component {
 }
 
 
-export default Headline
+export default withRouter(Headline)
