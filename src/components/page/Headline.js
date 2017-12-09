@@ -23,9 +23,10 @@ class Headline extends React.Component {
         onClick={this.handleClick}
         selectedKeys={[this.state.current]}
         mode="horizontal"
+        theme="dark"
       >
         <Menu.Item key="dummy" disabled>
-          <h2>西三物业管理系统</h2>
+          <h2 style={{"color":"white"}}>西三物业管理系统</h2>
         </Menu.Item>
         <Menu.Item key="/">
             <Icon type="appstore" />首页
