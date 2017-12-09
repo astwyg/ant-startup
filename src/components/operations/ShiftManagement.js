@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Table, Icon, Divider, Button, Modal, Layout,message,
+  Table, Icon, Divider, Button, Modal, Layout,message,Pagination,
   Form,Input, Row, Col, Select, Radio
 } from 'antd';
 const { Header, Footer, Sider, Content } = Layout;
@@ -8,14 +8,24 @@ const FormItem = Form.Item;
 const Option = Select.Option;
 const { TextArea } = Input;
 
-import ajax from '../../mimiron3/utils/ajax';
+import {jsonp} from '../../mimiron3/utils/ajax';
+import {createHours} from "../../mimiron3/utils/datetime";
 import OperationsLayout from './OperationsLayout';
 import { contentPath } from '../../settings';
+
 
 const AddShiftForm = Form.create()(
   (props) => {
     const { visible, onCancel, onCreate, form } = props;
-    const { getFieldDecorator } = form;
+    const { getFieldDecorator, getFieldValue } = form;
+    const checkTimeAvailable = (rule, value, callback)=>{
+      if(getFieldValue('startSign')&&getFieldValue('startTime')&&getFieldValue('endSign')&&getFieldValue('endTime')) {
+        if ((getFieldValue('startSign') + getFieldValue('startTime')) >= (getFieldValue('endSign') + getFieldValue('endTime'))) {
+          callback("结束时间不得早于或等于开始时间");
+        }
+      }
+      callback()
+    };
     return (
       <Modal
         visible={visible}
@@ -34,30 +44,40 @@ const AddShiftForm = Form.create()(
             )}
           </FormItem>
           <FormItem label="班次开始时间">
-            {getFieldDecorator('startSign',{rules: [{ required: true, message: '不能为空' }]})(
-              <Select initialValue="0" style={{ width: "50%"}}>
+            {getFieldDecorator('startSign',{initialValue:"0", rules: [{
+              required: true, message: '不能为空'
+            },{
+              validator: checkTimeAvailable
+            }]})(
+              <Select  style={{ width: "50%"}}>
                 <Option value="0">今日</Option>
                 <Option value="1">次日</Option>
               </Select>)
             }
-            {getFieldDecorator('startTime',{rules: [{ required: true, message: '不能为空' }]})(
-              <Select initialValue="00:00" style={{ width: "50%" }}>
-                <Option value="00:00">00:00</Option>
-                <Option value="01:00">01:00</Option>
+            {getFieldDecorator('startTime',{ initialValue:"00:00", rules: [{
+              required: true, message: '不能为空'
+            }]})(
+              <Select style={{ width: "50%" }}>
+                {createHours().map(h=><Option value={h} key={h}>{h}</Option>)}
               </Select>)
             }
           </FormItem>
           <FormItem label="班次结束时间">
-            {getFieldDecorator('endSign',{rules: [{ required: true, message: '不能为空' }]})(
-              <Select initialValue="0" style={{ width: "50%" }}>
+            {getFieldDecorator('endSign',{initialValue:"0", rules: [{
+              required: true, message: '不能为空'
+            },{
+              validator: checkTimeAvailable
+            }]})(
+              <Select style={{ width: "50%" }}>
                 <Option value="0">今日</Option>
                 <Option value="1">次日</Option>
               </Select>)
             }
-            {getFieldDecorator('endTime',{rules: [{ required: true, message: '不能为空' }]})(
-              <Select initialValue="00:00" style={{  width: "50%" }}>
-                <Option value="00:00">00:00</Option>
-                <Option value="01:00">01:00</Option>
+            {getFieldDecorator('endTime',{initialValue:"00:00", rules:  [ {
+              required: true, message: '不能为空'
+              }]})(
+              <Select style={{  width: "50%" }}>
+                {createHours().map(h=><Option value={h} key={h}>{h}</Option>)}
               </Select>)
             }
           </FormItem>
@@ -77,7 +97,21 @@ const AddShiftForm = Form.create()(
 const EditShiftForm = Form.create()(
   (props) => {
     const { visible, onCancel, onEdit, form } = props;
-    const { getFieldDecorator } = form;
+    const { getFieldDecorator, getFieldValue } = form;
+    const checkTimeAvailable = (rule, value, callback)=>{
+      if(getFieldValue('startSign')&&getFieldValue('startTime')&&getFieldValue('endSign')&&getFieldValue('endTime')) {
+        if ((getFieldValue('startSign') + getFieldValue('startTime')) >= (getFieldValue('endSign') + getFieldValue('endTime'))) {
+          callback("结束时间不得早于或等于开始时间");
+        }
+      }
+      callback()
+    };
+    //拆shiftTime得到startTime, endTime
+    let shiftTime = props.shiftTime.split("~");
+    const startSign = shiftTime[0].substring(0,2) === "本日"?"0":"1",
+      startTime = shiftTime[0].substring(2),
+      endSign = shiftTime[1].substring(0,2) === "本日"?"0":"1",
+      endTime = shiftTime[1].substring(2);
     return (
       <Modal
         visible={visible}
@@ -97,30 +131,31 @@ const EditShiftForm = Form.create()(
             )}
           </FormItem>
           <FormItem label="班次开始时间">
-            {getFieldDecorator('startSign',{rules: [{ required: true, message: '不能为空' }], initialValue: props.startSign})(
+            {getFieldDecorator('startSign',{
+              rules: [{
+                required: true, message: '不能为空'
+              }], initialValue: startSign})(
               <Select style={{ width: "50%"}}>
                 <Option value="0">今日</Option>
                 <Option value="1">次日</Option>
               </Select>)
             }
-            {getFieldDecorator('startTime',{rules: [{ required: true, message: '不能为空' }], initialValue: props.startTime})(
+            {getFieldDecorator('startTime',{rules: [{ required: true, message: '不能为空' },{validator: checkTimeAvailable}], initialValue: startTime})(
               <Select style={{ width: "50%" }}>
-                <Option value="00:00">00:00</Option>
-                <Option value="01:00">01:00</Option>
+                {createHours().map(h=><Option value={h} key={h}>{h}</Option>)}
               </Select>)
             }
           </FormItem>
           <FormItem label="班次结束时间">
-            {getFieldDecorator('endSign',{rules: [{ required: true, message: '不能为空' }], initialValue: props.endSign})(
+            {getFieldDecorator('endSign',{rules: [{ required: true, message: '不能为空' }], initialValue: endSign})(
               <Select style={{ width: "50%" }}>
                 <Option value="0">今日</Option>
                 <Option value="1">次日</Option>
               </Select>)
             }
-            {getFieldDecorator('endTime',{rules: [{ required: true, message: '不能为空' }], initialValue: props.endTime})(
+            {getFieldDecorator('endTime',{rules: [{ required: true, message: '不能为空' },{validator:checkTimeAvailable}], initialValue: endTime})(
               <Select style={{  width: "50%" }}>
-                <Option value="00:00">00:00</Option>
-                <Option value="01:00">01:00</Option>
+                {createHours().map(h=><Option value={h} key={h}>{h}</Option>)}
               </Select>)
             }
           </FormItem>
@@ -188,14 +223,9 @@ export default class ShiftManagement extends React.Component{
                   if (err) {
                     return;
                   }
-                  ajax({
-                    url: contentPath+ 'ShiftManager/updateShiftManager',
-                    dataType:'jsonp',
-                    callback:'callback',
-                    contentType: "application/jsonp; charset=utf-8",
-                    scriptCharset: 'utf-8',
+                  jsonp({
+                    url: 'ShiftManager/updateShiftManager',
                     data:{
-                      callback:"callback",
                       shiftId:record.shiftId,
                       ...values
                     },
@@ -221,19 +251,18 @@ export default class ShiftManagement extends React.Component{
       ),
     }],
     data:[],
+    contentNumber:5,
+    currentPage:0,
     modalVisibleAdd: false,
-    modalVisibleEdit: []
+    modalVisibleEdit: [],
   };
   loadData(){
-    ajax({
-      url: contentPath+ 'ShiftManager/getShiftManagerByParm',
-      dataType:'jsonp',
-      callback:'callback',
-      contentType: "application/jsonp; charset=utf-8",
-      scriptCharset: 'utf-8',
+    jsonp({
+      url: 'ShiftManager/getShiftManagerByParm',
       data:{
-        "callback" : "callback"
-        //"emergencyName":eventName,
+        number: this.state.contentNumber,
+        index:this.state.currentPage,
+        type:1,
       },
       success: data => {
         this.setState({
@@ -251,13 +280,9 @@ export default class ShiftManagement extends React.Component{
       if (err) {
         return;
       }
-      ajax({
-        url: contentPath+ 'ShiftManager/insertShiftManager',
-        dataType:'jsonp',
-        contentType: "application/jsonp; charset=utf-8",
-        scriptCharset: 'utf-8',
+      jsonp({
+        url: 'ShiftManager/insertShiftManager',
         data:{
-          "callback" : "callback",
           ...values
         },
         success: data => {
@@ -288,7 +313,11 @@ export default class ShiftManagement extends React.Component{
             />
           </Row>
           <Row>
-            <Table style={{"margin":"10px"}} columns={this.state.columns} dataSource={this.state.data} />
+            <Table style={{"margin":"10px"}} columns={this.state.columns} dataSource={this.state.data} pagination={false} />
+            <div style={{"textAlign":"center"}}>
+              <Pagination current={this.state.currentPage+1} onChange={page=>this.setState({currentPage:page})} total={this.state.contentNumber}
+                          showSizeChanger showQuickJumper/>
+            </div>
           </Row>
         </div>
       </OperationsLayout>
